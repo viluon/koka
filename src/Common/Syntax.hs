@@ -23,7 +23,7 @@ module Common.Syntax( Visibility(..)
                     , HandlerSort(..)
                     , isHandlerInstance, isHandlerNormal
                     , OperationSort(..), readOperationSort
-                    , Platform(..), platform32, platform64, platformCS, platformJS
+                    , Platform(..), platform32, platform64, platformCS, platformJS, platformLua
                     , alignedSum, alignedAdd, alignUp
                     , BuildType(..)
                     ) where
@@ -34,7 +34,7 @@ module Common.Syntax( Visibility(..)
 data JsTarget = JsDefault | JsNode | JsWeb                 deriving (Eq,Ord)
 data CTarget  = CDefault | LibC | Wasm | WasmJs | WasmWeb deriving (Eq,Ord)
 
-data Target = CS | JS JsTarget| C CTarget | Default deriving (Eq,Ord)
+data Target = CS | JS JsTarget | Lua | C CTarget | Default deriving (Eq,Ord)
 
 isTargetC (C _) = True
 isTargetC _     = False
@@ -43,7 +43,7 @@ isTargetJS (JS _) = True
 isTargetJS _      = False
 
 isTargetWasm :: Target -> Bool
-isTargetWasm target 
+isTargetWasm target
   = case target of
       C Wasm    -> True
       C WasmJs  -> True
@@ -57,6 +57,7 @@ instance Show Target where
                JS JsWeb  -> "jsweb"
                JS JsNode -> "jsnode"
                JS _      -> "js"
+               Lua       -> "lua"
                C  Wasm   -> "wasm"
                C  WasmJs -> "wasmjs"
                C  WasmWeb-> "wasmweb"
@@ -70,23 +71,25 @@ data Platform = Platform{ sizePtr  :: Int -- sizeof(intptr_t)
                         }
 
 platform32, platform64 :: Platform
-platform32 = Platform 4 4 
-platform64 = Platform 8 8 
-platformJS = Platform 8 4 
-platformCS = Platform 8 4 
+platform32 = Platform 4 4
+platform64 = Platform 8 8
+platformJS = Platform 8 4
+
+platformLua = Platform 8 4
+platformCS = Platform 8 4
 
 instance Show Platform where
   show (Platform sp ss) = "Platform(sizeof(void*)=" ++ show sp ++ ",sizeof(size_t)=" ++ show ss ++ ")"
 
 alignedSum :: Int -> [Int] -> Int
 alignedSum start xs = foldl alignedAdd start xs
-     
+
 alignedAdd :: Int -> Int -> Int
 alignedAdd x y = (alignUp x y) + y
-     
+
 alignUp :: Int -> Int -> Int
 alignUp x y  | y <= 0  = x
-alignUp x y  = ((x + y - 1) `div` y)*y    
+alignUp x y  = ((x + y - 1) `div` y)*y
 
 
 
@@ -98,7 +101,7 @@ instance Show BuildType where
   show Debug          = "debug"
   show RelWithDebInfo = "drelease"
   show Release        = "release"
-  
+
 
 {--------------------------------------------------------------------------
   Visibility
@@ -129,10 +132,10 @@ isHandlerNormal (HandlerNormal) = True
 isHandlerNormal _ = False
 
 
-data OperationSort 
+data OperationSort
   = OpVal | OpFun | OpExcept | OpControlRaw | OpControl
   deriving (Eq,Ord)
-  
+
 instance Show OperationSort where
   show opsort = case opsort of
                   OpVal -> "val"
@@ -140,10 +143,10 @@ instance Show OperationSort where
                   OpExcept -> "brk"
                   OpControl -> "ctl"
                   OpControlRaw -> "rawctl"
-                  
+
 readOperationSort :: String -> Maybe OperationSort
-readOperationSort s 
-  = case s of 
+readOperationSort s
+  = case s of
       "val" -> Just OpVal
       "fun" -> Just OpFun
       "brk" -> Just OpExcept
@@ -153,7 +156,7 @@ readOperationSort s
       "control"  -> Just OpControl
       "rcontrol" -> Just OpControlRaw
       _ -> Nothing
-  
+
 {--------------------------------------------------------------------------
   DataKind
 --------------------------------------------------------------------------}
@@ -205,10 +208,10 @@ data DefSort
   = DefFun [ParamInfo] | DefVal | DefVar
   deriving Eq
 
-data ParamInfo 
+data ParamInfo
   = Borrow
   | Own
-  deriving(Eq,Show)  
+  deriving(Eq,Show)
 
 isDefFun (DefFun _)  = True
 isDefFun _           = False

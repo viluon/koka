@@ -57,7 +57,7 @@ void printDecl( const char* sort, const char* name );
 %token MATCH
 %token RARROW LARROW
 
-%token FUN FN VAL VAR 
+%token FUN FN VAL VAR
 %token TYPE STRUCT EFFECT
 %token ALIAS CON
 %token FORALL EXISTS SOME
@@ -89,19 +89,19 @@ void printDecl( const char* sort, const char* name );
 %type <Id>  funid typeid modulepath binder
 %type <Id>  fundecl aliasdecl typedecl externdecl puredecl
 
-/* precedence declarations are in increasing order, 
-   i.e. the last precedence declaration has the highest precedence. 
+/* precedence declarations are in increasing order,
+   i.e. the last precedence declaration has the highest precedence.
 */
 
 /* resolve s/r conflict by shifting on ELSE so the ELSE binds to the closest IF.*/
-%precedence THEN 
+%precedence THEN
 %precedence ELSE ELIF
 
 /* resolve s/r conflict to have a `FN funparams -> expr` span as far as possible,
    e.g. `fn(x) -> x + 1` is `(fn(x) -> x + 1)` and not `(fn(x) -> x) + 1`
    and  `fn(x) -> x.foo` is `(fn(x) -> x.foo)` and not `(fn(x) -> x).foo`
-   note: we could avoid these rules by disallowing the `->` form in trailing lambdas. 
-*/   
+   note: we could avoid these rules by disallowing the `->` form in trailing lambdas.
+*/
 %precedence RARROW                     /* -> */
 %precedence '(' '[' FN '{' '.'         /* applications */
 %precedence OP ASSIGN '>' '<' '|'      /* operators */
@@ -417,8 +417,8 @@ expr        : withexpr
             | block             /* interpreted as an anonymous function (except if coming from `blockexpr`) */
             | returnexpr
             | valexpr
-            // | basicexpr '?' expr ':' expr  
-            | basicexpr                   
+            // | basicexpr '?' expr ':' expr
+            | basicexpr
             ;
 
 basicexpr   : ifexpr
@@ -434,15 +434,15 @@ basicexpr   : ifexpr
 matchexpr   : MATCH ntlexpr '{' semis matchrules '}'
             ;
 
-fnexpr      : FN funbody                     /* anonymous function */       
+fnexpr      : FN funbody                     /* anonymous function */
             ;
 
 returnexpr  : RETURN expr
             ;
 
-ifexpr      : IF ntlexpr THEN blockexpr elifs 
-            | IF ntlexpr THEN blockexpr       
-            | IF ntlexpr RETURN expr 
+ifexpr      : IF ntlexpr THEN blockexpr elifs
+            | IF ntlexpr THEN blockexpr
+            | IF ntlexpr RETURN expr
             ;
 
 elifs       : ELIF ntlexpr THEN blockexpr elifs
@@ -450,17 +450,17 @@ elifs       : ELIF ntlexpr THEN blockexpr elifs
             ;
 
 valexpr     : VAL apattern '=' blockexpr IN expr
-            ;            
+            ;
 
 
 /* operator expression */
 
-opexpr      : opexpr qoperator prefixexpr     
-            | prefixexpr                      
+opexpr      : opexpr qoperator prefixexpr
+            | prefixexpr
             ;
 
-prefixexpr  : '!' prefixexpr                  
-            | '~' prefixexpr                  
+prefixexpr  : '!' prefixexpr
+            | '~' prefixexpr
             | appexpr               %prec RARROW
             ;
 
@@ -469,16 +469,16 @@ appexpr     : appexpr '(' arguments ')'             /* application */
             | appexpr '.' atom                      /* dot application */
             | appexpr block                         /* trailing function application */
             | appexpr fnexpr                        /* trailing function application */
-            | atom 
+            | atom
             ;
 
 
 /* non-trailing-lambda expression */
-ntlexpr     : ntlopexpr      
+ntlexpr     : ntlopexpr
             ;
 
-ntlopexpr   : ntlopexpr qoperator ntlprefixexpr  
-            | ntlprefixexpr                      
+ntlopexpr   : ntlopexpr qoperator ntlprefixexpr
+            | ntlprefixexpr
             ;
 
 ntlprefixexpr: '!' ntlprefixexpr
@@ -559,7 +559,7 @@ pparameters1: pparameters1 ',' pparameter
             | pparameter
             ;
 
-pparameter  : borrow pattern 
+pparameter  : borrow pattern
             | borrow pattern ':' type
             | borrow pattern ':' type '=' expr
             | borrow pattern '=' expr
@@ -597,7 +597,7 @@ annot       : ':' typescheme
 -- Identifiers and operators
 ----------------------------------------------------------*/
 
-qoperator   : op     
+qoperator   : op
             ;
 
 qidentifier : qvarid
@@ -616,6 +616,7 @@ varid       : ID
             | ID_C            { $$ = "c"; }
             | ID_CS           { $$ = "cs"; }
             | ID_JS           { $$ = "js"; }
+            | ID_LUA          { $$ = "lua"; }
             | ID_FILE         { $$ = "file"; }
             | ID_INLINE       { $$ = "inline"; }
             | ID_NOINLINE     { $$ = "noinline"; }
@@ -639,7 +640,7 @@ qconstructor: conid
 
 qconid      : QCONID { $$ = $1; }
             ;
-            
+
 conid       : CONID  { $$ = $1; }
             ;
 
@@ -725,8 +726,8 @@ witheff     : '<' anntype '>'
 withstat    : WITH basicexpr
             | WITH binder LARROW basicexpr
             /* single operation shorthands */
-            | WITH override witheff opclause        
-            | WITH binder LARROW witheff opclause   
+            | WITH override witheff opclause
+            | WITH binder LARROW witheff opclause
             ;
 
 withexpr    : withstat IN blockexpr
@@ -756,7 +757,7 @@ opclause    : VAL qidentifier '=' blockexpr
 controlmod  : FINAL
             | RAW
             | /* empty */
-            ;            
+            ;
 
 opparams    : '(' opparams0 ')'
             ;

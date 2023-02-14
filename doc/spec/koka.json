@@ -3,16 +3,16 @@
   "name": "koka",
   "mimeTypes": ["text/x-koka"],
   "fileExtensions": ["kk","kki"],
-  
+
   "editorOptions": { "tabSize": 2, "insertSpaces": true },
-  
-  "lineComment":      "//",   
+
+  "lineComment":      "//",
   "blockCommentStart": "/*",
   "blockCommentEnd":   "*/",
 
   "keywords": [
-    "infix", "infixr", "infixl", 
-    "type", "alias", 
+    "infix", "infixr", "infixl",
+    "type", "alias",
     "struct", "enum", "con",
     "fun", "fn", "val", "var", "extern",
     "if", "then", "else", "elif", "return", "match",
@@ -28,7 +28,7 @@
     "mask","behind",
     "interface", "instance","override",
     "try", "yield","unsafe",
-    "inline","noinline"    
+    "inline","noinline"
   ],
 
   "extraKeywords": [
@@ -36,11 +36,11 @@
 
   "builtins": [
     "for", "while", "repeat",
-    "foreach", "foreach-indexed", 
+    "foreach", "foreach-indexed",
     "error", "catch", "finally",
-    "cs", "js", "file", "ref", 
+    "cs", "js", "lua", "file", "ref",
     "assigned", "bind", "unit",
-    "resume", "include", "inline", 
+    "resume", "include", "inline",
     "open", "linear"
   ],
 
@@ -48,7 +48,7 @@
   ],
 
   "typeKeywords": [
-    "forall", "exists", "some", "with"      
+    "forall", "exists", "some", "with"
   ],
 
  "extraTypeKeywords": [
@@ -69,21 +69,21 @@
   "escapes" :  "\\\\(?:[nrt\\\\\"'\\?]|x[0-9a-fA-F]{2}|u[0-9a-fA-F]{4}|U[0-9a-fA-F]{6})",
   "symbols0": "[\\$%&\\*\\+@!\\/\\\\\\^~=\\.:\\-\\?]",
   "symbols" : "(?:@symbols0|[\\|<>])+",
-  "idchars" : "(?:[\\w\\-])*", 
+  "idchars" : "(?:[\\w\\-])*",
   "idfinal" : "(?:[\\?\\'])*",
-  
+
   "tokenizer": {
     "root": [
-      
+
       ["((?:[a-z]@idchars@idfinal\\/)+)([a-z]@idchars@idfinal)", ["identifier.namespace","identifier"]],
-      
-      ["[a-z]@idchars@idfinal(?!\\/)", 
-        { "cases":{ "@keywords": { 
+
+      ["[a-z]@idchars@idfinal(?!\\/)",
+        { "cases":{ "@keywords": {
                     "cases": { "alias"  : { "token": "keyword", "next": "@alias_type" },
                                "struct" : { "token": "keyword", "next": "@struct_type" },
-                               "type|cotype|rectype|effect": { "token": "keyword", "next": "@type" }, 
+                               "type|cotype|rectype|effect": { "token": "keyword", "next": "@type" },
                                "module|as|import": { "token": "keyword", "next": "@module" },
-                               "@default": "keyword" } 
+                               "@default": "keyword" }
                   },
                   "@extraKeywords": "keyword",
                   "@builtins": "identifier.predefined",
@@ -96,25 +96,25 @@
 
       ["_@idchars@idfinal", "identifier.wildcard"],
 
-      
+
       ["([a-z]@idchars@idfinal\\/)+", "identifier.namespace" ],
-      
-      
+
+
       { "include": "@whitespace" },
-      
+
       ["[{}()\\[\\]]", "@brackets"],
       ["[;,`]", "delimiter"],
 
-      
+
       ["[<>](?![<>|]*@symbols0)", "@brackets" ],
       ["->(?!@symbols0|[>\\|])", "keyword" ],
       ["::?(?!@symbols0)", "type.operator", "@type"],
       ["::?(?=\\?)", "type.operator", "@type"],
 
-      
+
       ["@\"", { "token": "string.quote", "bracket": "@open", "next": "@litstring" } ],
-      
-      
+
+
       ["@symbols", { "cases": { "\\-": "operator.minus",
                               "\\.": "keyword",
                               "@keywords": "keyword.operator",
@@ -122,21 +122,21 @@
                               "@default": "operator" }}
       ],
 
-      
+
       ["[0-9]+\\.[0-9]+([eE][\\-+]?[0-9]+)?", "number.float"],
       ["0[xX][0-9a-fA-F]+", "number.hex"],
       ["[0-9]+", "number"],
 
-      
-      ["\"([^\"\\\\]|\\\\.)*$", "string.invalid" ],  
+
+      ["\"([^\"\\\\]|\\\\.)*$", "string.invalid" ],
       ["\"",  { "token": "string.quote", "bracket": "@open", "next": "@string" } ],
-      
-      
+
+
       ["'[^\\\\']'", "string"],
       ["(')(@escapes)(')", ["string","string.escape","string"]],
       ["'", "string.invalid"],
-      
-      
+
+
       ["^[ ]*#.*", "namespace"]
     ],
 
@@ -155,28 +155,28 @@
       ["(\")((?:[^\"]|\"\")*)(\")", ["comment","comment.doc","comment"]],
       ["(\\|)((?:[^|]|\\|\\|)*)(\\|)", ["comment","comment.doc","comment"]],
       ["[\\/*\"|]", "comment"]
-    ],  
+    ],
 
     "comment_docblock": [
-      ["\\*\\/|\\/\\*",  "@rematch", "@pop"], 
+      ["\\*\\/|\\/\\*",  "@rematch", "@pop"],
       ["^\\s*\"\\s*$",  "comment", "@pop"],
       ["^\\s*\\|\\s*$", "comment", "@pop"],
       ["[^*\\/]+", "comment.doc"],
-      [".", "comment.doc"] 
+      [".", "comment.doc"]
     ],
 
     "line_comment": [
       ["[^\"|]*$", "comment", "@pop" ],
       ["[^\"|]+",  "comment" ],
-      ["(\")((?:[^\"]|\"\")*)(\")", 
+      ["(\")((?:[^\"]|\"\")*)(\")",
         ["comment","comment.doc", { "cases": { "@eos":  { "token": "comment", "next": "@pop" },
                                              "@default": "comment" }}]
-      ],                                            
-      ["(\\|)((?:[^|]|\\|\\|)*)(\\|)", 
+      ],
+      ["(\\|)((?:[^|]|\\|\\|)*)(\\|)",
         ["comment","comment.doc", { "cases": { "@eos":  { "token": "comment", "next": "@pop" },
                                              "@default": "comment" }}]
-      ],  
-      [".*$", "comment", "@pop"] 
+      ],
+      [".*$", "comment", "@pop"]
     ],
 
     "string": [
@@ -192,26 +192,26 @@
       ["\"",        { "token": "string.quote", "bracket": "@close", "next": "@pop" } ]
     ],
 
-    
+
     "module": [
       { "include": "@whitespace" },
-      ["([a-z]@idchars\\/)*[a-z]@idchars", 
+      ["([a-z]@idchars\\/)*[a-z]@idchars",
         { "cases": { "@moduleKeywords": "keyword",
                    "@keywords": { "token": "@rematch", "next": "@pop" },
                    "@default": "identifier.namespace" }}
       ],
       ["[=]", "keyword"],
-      ["","","@pop"] 
+      ["","","@pop"]
     ],
 
-    
+
     "alias_type": [
-      ["=", "keyword.operator"],                
+      ["=", "keyword.operator"],
       { "include": "@type" }
     ],
 
     "struct_type": [
-      [ "\\((?!,*\\))", "@brackets", "@pop"],    
+      [ "\\((?!,*\\))", "@brackets", "@pop"],
       { "include": "@type" }
     ],
 
@@ -231,23 +231,23 @@
     "type_content": [
       { "include": "@whitespace" },
 
-      
-      ["[*!](?!@symbols)", "type.kind.identifier"],                    
+
+      ["[*!](?!@symbols)", "type.kind.identifier"],
       ["[a-z][0-9]*(?![a-zA-Z_])", "type.identifier.typevar"],
       ["_@idchars", "type.identifier.typevar"],
-      
-      ["((?:[a-z]@idchars\\/)*)([a-z]@idchars)", 
+
+      ["((?:[a-z]@idchars\\/)*)([a-z]@idchars)",
         { "cases": { "@typeKeywords": ["type.identifier.namespace","type.keyword"],
-                   "@extraTypeKeywords": ["type.identifier.namespace","type.keyword"], 
+                   "@extraTypeKeywords": ["type.identifier.namespace","type.keyword"],
                    "@keywords": { "token": "@rematch", "next": "@pop" },
                    "@extraKeywords": { "token": "@rematch", "next": "@pop" },
                    "@default": ["type.identifier.namespace","type.identifier"]
         }}
       ],
       ["((?:[a-z]@idchars\\/)*)[A-Z]@idchars", "type.kind.identifier"],
-      
+
       ["::|->|[\\.:|]", "type.operator"],
-      ["","","@pop"]  
+      ["","","@pop"]
     ]
   }
 }
