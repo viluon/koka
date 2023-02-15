@@ -1740,7 +1740,7 @@ copyIFaceToOutputDir term flags iface core
   -- | otherwise
   = do let outIFace = outName flags (notdir iface)
            withExt fname ext = notext fname ++ ext
-       -- trace ("copy iface: " ++ iface ++ " to " ++ outIFace) $ return ()
+       trace ("copy iface: " ++ iface ++ " to " ++ outIFace) $ return ()
        copyTextIfNewer (rebuild flags) iface outIFace
        case target flags of
         CS
