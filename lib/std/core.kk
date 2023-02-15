@@ -850,6 +850,7 @@ inline extern int-add : (int,int) -> int
   c  "kk_integer_add"
   cs inline "(#1 + #2)"
   js "$std_core._int_add"
+  lua inline "(#1 + #2)"
 
 // Add two integers.
 pub fun (+)(x : int, y : int ) : int
@@ -859,6 +860,7 @@ inline extern int-sub : (int,int) -> int
   c  "kk_integer_sub"
   cs inline "(#1 - #2)"
   js "$std_core._int_sub"
+  lua inline "(#1 - #2)"
 
 // Substract two integers.
 pub fun (-)(x : int, y : int ) : int
@@ -881,6 +883,7 @@ pub inline extern (%)  : (int,int) -> int
   c  "kk_integer_mod"
   cs "Primitive.IntMod"
   js "$std_core._int_mod"
+  lua inline "(#1 % #2)"
 
 // Euclidean-0 division & modulus.
 // Euclidean division is defined as: For any `D`  and `d`  where `d!=0` , we have:
@@ -913,36 +916,42 @@ pub inline extern (~)(i:int) : int
   c  "kk_integer_neg"
   cs inline "(-#1)"
   js "$std_core._int_negate"
+  lua inline "(-#1)"
 
 // Convert an integer to a `:float64`. May return `nan` if the integer is too large to represent as a `:float64`.
 pub inline extern float64( i : int) : float64
   c  "kk_integer_as_double"
   cs "Primitive.IntToDouble"
   js "$std_core._int_to_double"
+  lua inline "#1"
 
 // Convert an integer to a `:float32`. May return `nan` if the integer is too large to represent as a `:float32`.
 pub inline extern float32( i : int) : float32
   c  "kk_integer_as_float"
   cs "Primitive.IntToFloat"
   js "$std_core._int_to_float"
+  lua inline "#1"
 
 // Is this an odd integer?
 pub inline extern is-odd( i : int ) : bool
   c  "kk_integer_is_odd"
   cs inline "!(#1.IsEven)"
   js "$std_core._int_isodd"
+  lua inline "(#1 % 2 == 1)"
 
 // Is this equal to zero?
 pub inline extern is-zero( ^x : int) : bool
   c  inline "kk_integer_is_zero_borrow(#1)"
   cs inline "(#1.IsZero)"
   js "$std_core._int_iszero"
+  lua inline "#1 == 0"
 
 // Return the absolute value of an integer.
 pub inline extern abs(i : int) : int
   c  "kk_integer_abs"
   cs "BigInteger.Abs"
   js "$std_core._int_abs"
+  lua "math.abs"
 
 pub fun inc( i : int ) : int
   i + 1
@@ -959,6 +968,7 @@ pub extern pow( i : int, exp : int ) : int
   c  "kk_integer_pow"
   cs "Primitive.IntPow"
   js "_int_pow"
+  lua inline "(#1 ^ #2)"
 
 // Raise an integer `i` to the power of `exp`.
 pub fun (^)(i : int, exp : int ) : int
@@ -1272,6 +1282,7 @@ extern xparse-int( s : string, hex : bool ) : maybe<int>
   c  "kk_integer_xparse"
   cs "Primitive.IntParse"
   js "_int_parse"
+  lua inline "tonumber(#1, #2 and 16 or 10)"
 
 // ----------------------------------------------------------------------------
 // Floating point
@@ -1317,12 +1328,14 @@ pub inline extern int( f : float64 ) : int
   c  "kk_integer_from_double"
   cs "Primitive.IntDouble"
   js "$std_core._int_double"
+  lua "_std_core._int_double"
 
 // Returns the value `f`  raised to the power `p` .
 pub inline extern (^)( f : float64, p : float64) : float64
   c inline "pow(#1,#2)"
   cs "Math.Pow"
   js "Math.pow"
+  lua inline "(#1 ^ #2)"
 
 // Return the absolute value of a `:float64` `f`
 pub inline extern abs( f : float64 ) : float64
@@ -1403,12 +1416,14 @@ pub inline extern (==) : (string,string) -> bool
   c  "kk_string_is_eq"
   cs inline "(#1 == #2)"
   js inline "(#1 === #2)"
+  lua inline "(#1 == #2)"
 
 // Are two strings not equal?
 pub inline extern (!=) : (string,string) -> bool
   c  "kk_string_is_neq"
   inline "(#1 != #2)"
   js inline "(#1 !== #2)"
+  lua inline "(#1 ~= #2)"
 
 extern string-compare : ( x : string, y : string ) -> int
   c  "kk_string_cmp_int"
@@ -1439,12 +1454,14 @@ inline extern length( s : string ) : ssize_t
   c inline "kk_string_len(#1,kk_context())"
   cs inline "#1.Length"
   js inline "#1.length"
+  lua inline "(#1):len()"
 
 // O(n). Return the number of characters in a string.
 pub extern count( s : string ) : int
   c  "kk_string_count_int"
   cs "Primitive.StringCount"
   js "_string_count"
+  lua inline "(#1):len()"
 
 // O(n). Return the number of characters in a string slice
 pub extern count( slice : sslice ) : int
@@ -1630,9 +1647,10 @@ pub fun ends-with( s : string, post : string ) : maybe<sslice>
 
 // Does string `s`  contain the string `sub`  ?
 pub inline extern contains: (s : string, sub : string ) -> bool
-  c  "kk_string_contains"
-  cs inline "((#1).Contains(#2))"
-  js inline "((#1).indexOf(#2) >= 0)"
+  c   "kk_string_contains"
+  cs  inline "((#1).Contains(#2))"
+  js  inline "((#1).indexOf(#2) >= 0)"
+  lua inline "((#1):find(#2, 1, true) ~= nil)"
 
 // Concatenate a vector of strings
 pub inline extern join: (v : vector<string> ) -> string
@@ -1719,9 +1737,10 @@ pub inline extern replace-all( s : string, pattern : string, repl : string ) : s
 
 // Count occurences of `pattern` in a string.
 pub inline extern count( s : string, pattern : string ) : int
-  c  "kk_string_count_pattern"
-  cs inline "Primitive.Count(#1,#2)"
-  js inline r"((#2) ? ((#1).match(new RegExp((#2).replace(/[\\\$\^*+\-{}?().]/g,'\\$&'),'g'))||[]).length : 0)"
+  c   "kk_string_count_pattern"
+  cs  inline "Primitive.Count(#1,#2)"
+  js  inline r"((#2) ? ((#1).match(new RegExp((#2).replace(/[\\\$\^*+\-{}?().]/g,'\\$&'),'g'))||[]).length : 0)"
+  lua inline r"((#2) and ({(#1):gsub(#2,'')})[2] or 0)"
 
 // Apply a function `f` to each character in a string
 pub fun map( s : string, f : char -> e char ) : e string

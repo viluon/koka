@@ -78,7 +78,7 @@ inferKinds
   -> Synonyms         -- ^ Initial list of synonyms
   -> Newtypes         -- ^ Initial list of data types
   -> Program UserType UserKind  -- ^ Original program
-  -> Core.CorePhase 
+  -> Core.CorePhase
            ( DefGroups Type       --  Translated program (containing translated types)
            -- , Gamma                --  Gamma containing generated functions, i.e type scheme for every constructor
            , KGamma               --  updated kind gamma
@@ -90,7 +90,7 @@ inferKinds
            , Core.Core            --  Initial core program with type definition groups, externals, and some generated definitions for data types (like folds).
            , Maybe RangeMap
            )
-inferKinds isValue colors platform mbRangeMap imports kgamma0 syns0 data0 
+inferKinds isValue colors platform mbRangeMap imports kgamma0 syns0 data0
             (Program source modName nameRange tdgroups defs importdefs externals fixdefs doc)
   =do unique0 <- unique
       let (errs1,warns1,rm1,unique1,(cgroups,kgamma1,syns1,data1)) = runKindInfer colors platform mbRangeMap modName imports kgamma0 syns0 data0 unique0 (infTypeDefGroups tdgroups)
@@ -417,6 +417,7 @@ formatCall tp (target,ExternalCall fname)
   = case target of
       CS      -> (target,formatCS)
       JS _    -> (target,formatJS)
+      Lua     -> (target,formatLua)
       C _     -> (target,formatC)
       Default -> (target,formatJS)
   where
@@ -435,6 +436,9 @@ formatCall tp (target,ExternalCall fname)
         else ("<" ++ concat (intersperse "," ["##" ++ show i | i <- [1..length foralls]]) ++ ">")
 
     formatJS
+      = fname ++ arguments
+
+    formatLua
       = fname ++ arguments
 
     formatCS
@@ -824,7 +828,7 @@ resolveTypeDef isRec recNames (DataType newtp params constructors range vis sort
        {-
        -- is a maybe like reference type?
        let isAsMaybe = not isRec && case sortOn (length . conInfoParams) infos of
-                         [nothing,just] -> length (conInfoParams nothing) == 0 && case conInfoParams just of 
+                         [nothing,just] -> length (conInfoParams nothing) == 0 && case conInfoParams just of
                                              [(_,TVar _)] -> True
                                              _ -> False
                          _ -> False
@@ -846,7 +850,7 @@ resolveTypeDef isRec recNames (DataType newtp params constructors range vis sort
                     -> return DataDefRec
                   _ -- Value or auto, and not recursive
                     -> -- determine the raw fields and total size
-                       do platform <- getPlatform                          
+                       do platform <- getPlatform
                           dd <- toDefValues platform (ddef/=DataDefAuto) qname nameDoc infos
                           case (ddef,dd) of  -- note: m = raw, n = scan
                             (DataDefValue _ _, DataDefValue m n)

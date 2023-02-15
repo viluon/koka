@@ -164,7 +164,7 @@ moduleImport imp
 
 includeExternal ::  BuildType -> External -> [Doc]
 includeExternal buildType  ext
-  = case externalImportLookup (JS JsDefault) buildType "include-inline" ext of
+  = case externalImportLookup Lua buildType "include-inline" ext of
       Just content -> [align $ vcat $! map text (lines content)]
       _ -> []
 
@@ -172,8 +172,8 @@ includeExternal buildType  ext
 
 importExternal :: BuildType -> External -> [(Doc,Doc)]
 importExternal buildType  ext
-  = case externalImportLookup (JS JsDefault) buildType  "library" ext of
-      Just path -> [(text path, case externalImportLookup (JS JsDefault) buildType  "library-id" ext of
+  = case externalImportLookup Lua buildType  "library" ext of
+      Just path -> [(text path, case externalImportLookup Lua buildType  "library-id" ext of
                                   Just name -> text name
                                   Nothing   -> text path)]
       _ -> []
@@ -207,10 +207,9 @@ genDef topLevel def@(Def name tp expr vis sort inl rng comm)
                                      then export vis name (text "local" <+> ppName (unqualify name) <.> semi <--> doc)
                                      else return doc
 
-       return $ vcat [ text ""
-                     , if null comm
-                         then empty
-                         else align (vcat (space : map (text . ("--" ++)) (lines (trim comm)))) {- not a valid Lua comment -}
+       return $ vcat [ if null comm
+                          then empty
+                          else align (vcat (space : map (text . ("--" ++)) (lines (trim comm)))) {- not a valid Lua comment -}
                      , defDoc
                      ]
   where
@@ -957,7 +956,7 @@ genExprExternalPrim tname formats argDocs0
 
 getFormat :: TName -> [(Target,String)] -> String
 getFormat tname formats
-  = case lookupTarget (JS JsDefault) formats of  -- TODO: pass specific target from the flags
+  = case lookupTarget Lua formats of  -- TODO: pass specific target from the flags
       Nothing -> -- failure ("backend does not support external in " ++ show tname ++ ": " ++ show formats)
                  trace( "warning: backend does not support external in " ++ show tname ) $
                     ("_std_core._unsupported_external(\"" ++ (show tname) ++ "\")")
@@ -1020,7 +1019,7 @@ extractExternal expr
       _ -> Nothing
   where
     format tn fs
-      = case lookupTarget (JS JsDefault) fs of  -- TODO: pass real target from flags
+      = case lookupTarget Lua fs of  -- TODO: pass real target from flags
           Nothing -> failure ("backend does not support external in " ++ show tn ++ show fs)
           Just s -> s
 

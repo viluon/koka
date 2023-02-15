@@ -129,13 +129,13 @@ prettyExternalImport env target (ExternalImport imports _)
       Just keyvals0
         -> case filter (\(key,_) -> key /= "include-inline" && key /= "header-include-inline") keyvals0 of
              [] -> empty
-             keyvals -> keyword env "extern import" <+> text "{" 
+             keyvals -> keyword env "extern import" <+> text "{"
                           <-> tab (ppTarget env target <+> text "{" <-> tab (vcat (map prettyKeyval keyvals)) <-> text "};")
                           <-> text "};"
   where
     prettyKeyval (key,val)
       = prettyLit env (LitString key) <.> text "=" <.> prettyLit env (LitString val) <.> semi
-      
+
 prettyExternalImport env target _ = empty
 
 
@@ -186,8 +186,9 @@ ppTarget env target
       CS      -> text "cs "
       C _     -> text "c "
       JS _    -> text "js "
+      Lua     -> text "lua "
       -- _       -> keyword env (show target) <.> space
-    
+
 
 prettyTypeDefGroup :: Env -> TypeDefGroup -> Doc
 prettyTypeDefGroup env (TypeDefGroup defs)
@@ -253,7 +254,7 @@ prettyInlineDef env (InlineDef name expr isRec inlkind cost sort specArgs)
               Lam _ _ _             -> True
               _                     -> False
 
-    prettySpecArgs 
+    prettySpecArgs
       = dquotes (text [if spec then '*' else '_' | spec <- specArgs])
 
     prettyParamInfos (DefFun pinfos) | Borrow `elem` pinfos
@@ -272,9 +273,9 @@ prettyDefX env isRec def@(Def name scheme expr vis sort inl nameRng doc)
            prettyVis env vis $
             keyword env (show sort)
             <+> (if nameIsNil name && coreShowDef env
-                  then text "_" 
-                  else prettyDefName env name) 
-            <+> text ":" <+> (case sort of 
+                  then text "_"
+                  else prettyDefName env name)
+            <+> text ":" <+> (case sort of
                   DefFun pinfos -> prettyDefFunType env pinfos scheme
                   _             -> prettyType env scheme
                 )
@@ -282,7 +283,7 @@ prettyDefX env isRec def@(Def name scheme expr vis sort inl nameRng doc)
                   then empty
                   else linebreak <.> indent 2 (text "=" <+> ppBody)) <.> semi
   where
-    ppBody = prettyExpr env{coreShowVis=False} expr 
+    ppBody = prettyExpr env{coreShowVis=False} expr
 
 prettyVis env vis doc
   = if (not (coreShowVis env)) then doc else
@@ -363,13 +364,13 @@ prettyExpr env (Con tname repr)
 prettyExpr env (Lit lit)
   = prettyLit env lit
 
---  
+--
 prettyExpr env (Let ([DefNonRec (Def x tp e vis isVal inl nameRng doc)]) e')
   = vcat [ let exprDoc = prettyExpr env e <.> semi
            in {- if (nameIsNil x) then exprDoc
                else -}
               (keyword env "val" <+> hang 2 (
-                (if nameIsNil x then text "_" else prettyDefName env x) <+> text ":" <+> prettyType env tp 
+                (if nameIsNil x then text "_" else prettyDefName env x) <+> text ":" <+> prettyType env tp
                 <-> text "=" <+> exprDoc))
          , prettyExpr env e'
          ]
@@ -486,9 +487,9 @@ prettyTName env (TName name tp)
 
 prettyName :: Env -> Name -> Doc
 prettyName env name
-  = if (isQualified name) 
-      then color (colorNameQual (colors env)) (text (nameModule name ++ "/")) <.> 
-           color (colorSource (colors env)) (pretty (unqualify name)) 
+  = if (isQualified name)
+      then color (colorNameQual (colors env)) (text (nameModule name ++ "/")) <.>
+           color (colorSource (colors env)) (pretty (unqualify name))
       else color (colorSource (colors env)) $ pretty name
   {-
     let (nm,post) = canonicalSplit name
